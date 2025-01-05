@@ -5,7 +5,11 @@ const Response = @import("config/response.zig");
 const Method = Request.RequestMethod;
 const stdout = std.io.getStdOut().writer();
 
+const ServeFile = @import("fs/serve.zig").ServeFile;
+
 pub fn main() !void {
+    try ServeFile.serve();
+
     const socket: Socket = try Socket.init();
 
     try stdout.print("Server addr: {any}", .{socket.address});
