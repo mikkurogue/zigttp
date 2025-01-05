@@ -17,4 +17,8 @@ pub const Socket = struct {
 
         return Socket{ .address = address, .stream = stream };
     }
+
+    pub fn deinit(self: *Socket) !void {
+        self.stream.close();
+    }
 };

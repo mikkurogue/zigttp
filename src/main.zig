@@ -16,6 +16,8 @@ pub fn main() !void {
 
     const connection = try server.accept();
 
+    // FIXME:
+    // need to be able to gracefully shutdown the process and kill the socket.
     while (true) {
         var buffer: [1024]u8 = undefined;
 
@@ -29,7 +31,8 @@ pub fn main() !void {
                 result catch |e| {
                     // TODO: handle cases accordingly.
                     std.log.debug("Serve file error: {any}", .{e});
-                    return;
+                    socket.deinit();
+                    break;
                 };
             } else {
                 try Response.send_404(connection);
