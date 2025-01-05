@@ -23,3 +23,13 @@
 /// NOTE: We only target linux systems, because who installs windows nowadays on a vps like come on man
 /// get over yourself. Stop using windows its literal spyware
 const std = @import("std");
+
+/// Serve a singular file (i.e. www/index.html)
+pub const ServeFile = struct {};
+
+/// Serve a directory with a root file (i.e. www/my-website/index.html)
+pub const ServeDirectory = struct {};
+
+/// Serve a sub-directory with a root file.
+/// Not yet sure how i want to do this
+pub const ServeSubDirectory = struct {};
