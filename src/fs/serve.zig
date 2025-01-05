@@ -27,26 +27,26 @@ const fs = std.fs;
 const Dir = fs.Dir;
 const File = fs.File;
 const OpenErr = fs.File.OpenError;
-
+const Response = @import("../config/response.zig");
+const Connection = std.net.Server.Connection;
 const empty_config = .{};
 
 /// Serve a singular file (i.e. www/index.html)
 pub const ServeFile = struct {
-    pub fn serve() !void {
-        check_def_dir_exists() catch |e| {
+    connection: Connection,
+    pub fn serve(self: *ServeFile) !void {
+        const file = check_index_html_exists() catch |e| {
             if (e == OpenErr.FileNotFound) {
-                std.log.debug("No folder www", .{});
-                try mk_def_dir();
-            }
-        };
-
-        check_index_html_exists() catch |e| {
-            if (e == OpenErr.FileNotFound) {
-                std.log.debug("No file found - making default file", .{});
-
+                std.log.debug("No file found - making default file\n", .{});
                 try mk_def_index();
+                return; // If no file exists, you exit early here.
             }
+            return e; // Re-throw any unexpected error.
         };
+
+        // This code will only run if `check_index_html_exists()` succeeded.
+        std.log.debug("index exists \n", .{});
+        try Response.send_200_with_file(self.connection, file);
     }
 };
 
@@ -72,10 +72,7 @@ fn check_def_dir_exists() !void {
 
 /// Make the default index.html file in the www folder
 fn mk_def_index() !void {
-    var dir: Dir = try fs.cwd().openDir("www", empty_config);
-    defer dir.close();
-
-    const index_html: File = fs.cwd().createFile("index.html", empty_config) catch |err| switch (err) {
+    const index_html: File = fs.cwd().createFile("www/index.html", empty_config) catch |err| switch (err) {
         // If the file already exists, means we have made it (or a user has made a previous one) so we can ignore
         // the error, lets just continue on - need to do a "read from dir" function and determine if it exists or not at a later
         // date
@@ -84,14 +81,12 @@ fn mk_def_index() !void {
     };
     defer index_html.close();
 
-    const byte_written = try index_html.write("<h1>hello world</h1>");
-    _ = byte_written;
+    const page = try index_html.write("<h1>Let's get Ziggy!</h1>");
+    _ = page;
 }
 
-fn check_index_html_exists() !void {
-    var dir: Dir = try fs.cwd().openDir("www", empty_config);
-    defer dir.close();
+fn check_index_html_exists() !File {
+    const file = try fs.cwd().openFile("www/index.html", empty_config);
 
-    var file = try fs.cwd().openFile("www/", empty_config);
-    defer file.close();
+    return file;
 }
