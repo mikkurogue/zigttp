@@ -1,6 +1,8 @@
 const std = @import("std");
 const Connection = std.net.Server.Connection;
 const Map = std.static_string_map.StaticStringMap;
+const StringEqual = std.mem.eql;
+pub const MimeType = enum { html, js, css };
 
 /// TODO implement post put delete patch
 pub const RequestMethod = enum {
@@ -60,4 +62,35 @@ pub fn parse(text: []u8) Request {
     const req = Request.init(method, uri, version);
 
     return req;
+}
+
+pub fn determine_extension(file_path: []const u8) ![]const u8 {
+    var ext = std.mem.splitScalar(u8, file_path, '.');
+
+    // For now we just do this garbonzo
+    while (ext.next()) |c| {
+        if (StringEqual(u8, c, "html")) {
+            return "html";
+        } else if (StringEqual(u8, c, "css")) {
+            return "css";
+        } else if (StringEqual(u8, c, "js")) {
+            return "js";
+        } else if (c == StringEqual(u8, c, "")) {
+            return "html";
+        }
+    }
+
+    return "html";
+}
+
+/// Determine file mime type - for now we only support what the mimetype enum now contains
+/// defaults to text/html
+pub fn determine_mimetype(file_extension: []const u8) !MimeType {
+    const ext = std.meta.stringToEnum(MimeType, file_extension) orelse MimeType.html;
+
+    switch (ext) {
+        .css => return MimeType.css,
+        .js => return MimeType.js,
+        .html => return MimeType.html,
+    }
 }

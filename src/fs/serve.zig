@@ -29,25 +29,28 @@ const File = fs.File;
 const OpenErr = fs.File.OpenError;
 const Response = @import("../config/response.zig");
 const Connection = std.net.Server.Connection;
+const MimeType = @import("../config/request.zig").MimeType;
 const empty_config = .{};
 
 /// Serve a singular file (i.e. www/index.html)
 pub const ServeFile = struct {
     connection: Connection,
+    path: []const u8,
+    // file_type: MimeType,
+
     pub fn serve(self: *ServeFile) !void {
-        const file = check_index_html_exists() catch |e| {
+        const file = fs.cwd().openFile(self.path, empty_config) catch |e| {
             if (e == OpenErr.FileNotFound) {
-                std.log.debug("No file found - making default file\n", .{});
-                try mk_def_index();
-                // TODO: figure out what to do if mk_def_index fails.
-                // I dont think it can fail here though...
+                std.log.debug("File not found: {s}\n", .{self.path});
+                try Response.send_404(self.connection);
                 return;
             }
-            return e; // Re-throw any unexpected error.
+            return e;
         };
+        defer file.close();
 
-        // This code will only run if `check_index_html_exists()` succeeded.
-        std.log.debug("index exists \n", .{});
+        // std.log.debug("serving file: {s}\n", .{self.path});
+
         try Response.send_200_with_file(self.connection, file);
     }
 };
