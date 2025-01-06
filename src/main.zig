@@ -15,7 +15,7 @@ pub fn main() !void {
     var server = try socket.address.listen(.{});
 
     const connection = try server.accept();
-
+    defer server.deinit();
     // FIXME:
     // need to be able to gracefully shutdown the process and kill the socket.
     while (true) {
@@ -31,6 +31,7 @@ pub fn main() !void {
                 result catch |e| {
                     // TODO: handle cases accordingly.
                     std.log.debug("Serve file error: {any}", .{e});
+                    // close socket - this should be graceful enough?
                     socket.deinit();
                     break;
                 };
@@ -39,6 +40,4 @@ pub fn main() !void {
             }
         }
     }
-
-    errdefer server.deinit();
 }
