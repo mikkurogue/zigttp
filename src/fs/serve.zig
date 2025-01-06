@@ -39,7 +39,9 @@ pub const ServeFile = struct {
             if (e == OpenErr.FileNotFound) {
                 std.log.debug("No file found - making default file\n", .{});
                 try mk_def_index();
-                return; // If no file exists, you exit early here.
+                // TODO: figure out what to do if mk_def_index fails.
+                // I dont think it can fail here though...
+                return;
             }
             return e; // Re-throw any unexpected error.
         };
