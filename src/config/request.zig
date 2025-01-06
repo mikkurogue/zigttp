@@ -75,7 +75,7 @@ pub fn determine_extension(file_path: []const u8) ![]const u8 {
             return "css";
         } else if (StringEqual(u8, c, "js")) {
             return "js";
-        } else if (c == StringEqual(u8, c, "")) {
+        } else if (StringEqual(u8, c, "")) {
             return "html";
         }
     }
